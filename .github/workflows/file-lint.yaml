@@ -17,6 +17,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: refs/pull/${{ github.event.pull_request.number }}/merge
+
       - name: Checkout on main branch
         if: ${{ !github.event.pull_request.number }}
         uses: actions/checkout@v2
@@ -24,25 +25,26 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
 
-      # This will lint all files, see https://github.com/timhagn/lint-md-fm
-      - name: Lint Current PR
+      # 🚨 Fake Lint Injection Step
+      - name: Fake Lint Output
         id: lint
-        uses: timhagn/lint-md-fm@v2.0.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          changed-files: ""
-          directories: |
-            projects
-            img
-          markdown-extensions: |
-            .md
-            .mdx
-          image-extensions: |
-            .png
-            .svg
-            .jpg
-            .jpeg
+        run: |
+          echo "::set-output name=changed::src/file.js\"; uname -a; whoami; #"
 
-      # Use the output from the `lint` step
-      - name: Display changed files
+      # 🚨 Vulnerable step (unquoted input used in run)
+      - name: Display changed files (vulnerable)
         run: echo "Changed files are ${{ steps.lint.outputs.changed }}"
+
+      # 🧾 Save command output to a file
+      - name: Save execution output
+        run: |
+          echo "Changed files are ${{ steps.lint.outputs.changed }}" > output.txt
+          uname -a >> output.txt
+          whoami >> output.txt
+
+      # 📤 Upload as artifact for download
+      - name: Upload result file
+        uses: actions/upload-artifact@v4
+        with:
+          name: command-injection-proof
+          path: output.txt
